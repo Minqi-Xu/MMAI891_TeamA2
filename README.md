@@ -7,8 +7,21 @@ This project implements a **Create-mode agentic POC** based on your Agent Design
 
 ## 1) Quick Start
 
+One-command setup (recommended):
+
 ```bash
-cd "/Users/soulofstarrysky/Documents/Queensu/MMAI891_NaturalLanguageProcessing/Team A2/Demo"
+./install.sh
+```
+
+`./install.sh` will automatically:
+- create `.venv`
+- install all required packages
+- run a package import check
+- start the Streamlit app
+
+Manual setup:
+
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
