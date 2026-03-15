@@ -329,6 +329,9 @@ You are summarizing one chunk of study material.
 Return strict JSON with keys:
 - chunk_summary: string (2-4 sentences)
 - key_concepts: array of up to 5 short concept strings
+Rules:
+- Use only the provided chunk content.
+- Do not introduce facts, definitions, or concepts not present in the chunk.
 
 Chunk:
 {chunk}
@@ -354,7 +357,9 @@ def generate_study_pack_with_llm(
         "You are an educational assistant. Return strict JSON with keys: "
         "summary (string), key_concepts (array of strings), quiz (array of exactly 5 objects). "
         "Each quiz object needs: question (string), options (array of 4 strings), "
-        "correct_index (0-3 int), explanation (string), concept (string)."
+        "correct_index (0-3 int), explanation (string), concept (string). "
+        "Use only the provided source material. Do not use external knowledge. "
+        "If a fact is not in the source, do not include it."
     )
 
     chunks = chunk_text(text)
@@ -412,6 +417,8 @@ Task:
 4) Questions must test understanding, not just copying text.
 5) Keep explanations short but instructive.
 6) For each question, ensure explanation includes why the correct option is right and why one likely wrong option is wrong.
+7) Every question and option must be fully answerable from the provided source material only.
+8) Do not use external facts, assumptions, or prior domain knowledge.
 {hint_instruction}
 Return only valid JSON.
 """
@@ -606,10 +613,15 @@ with st.sidebar:
         if st.button("Confirm Clear Current Output", type="secondary"):
             clear_current_outputs(preserve_topic=True)
             st.rerun()
-    if st.button("Clear All Saved Memory", type="secondary"):
-        clear_memory()
-        clear_current_outputs(preserve_topic=True)
-        st.success("All saved topic memory was removed.")
+    with st.popover("Clear All Saved Memory"):
+        st.write(
+            "This permanently removes all saved topic memory from local storage "
+            f"(`{MEMORY_FILE}`). Current page output will also be cleared."
+        )
+        if st.button("Confirm Clear All Saved Memory", type="secondary"):
+            clear_memory()
+            clear_current_outputs(preserve_topic=True)
+            st.rerun()
 
 st.session_state.topic = st.text_input(
     "Topic for this session (used for memory and adaptive future quizzes)",
