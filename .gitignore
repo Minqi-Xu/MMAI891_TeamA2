@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Virtual env
+.venv/
+venv/
+
+# Secrets
+.env
+.env.*
+secrets/openai_api_key.txt
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/
+
+# Logs and temp artifacts
+*.log
+*.tmp
+*.swp
+
+# Local large/binary artifacts
+artifacts/
+*.zip
+*.tar
+*.gz
+*.mp4
+*.mov

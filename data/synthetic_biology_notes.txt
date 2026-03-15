@@ -1,0 +1,7 @@
+Cellular respiration is the process by which cells convert glucose into ATP, the cell's main energy currency. It occurs in three major stages: glycolysis, the citric acid cycle, and oxidative phosphorylation. Glycolysis occurs in the cytoplasm and breaks glucose into pyruvate, producing a small amount of ATP and NADH. The citric acid cycle takes place in the mitochondrial matrix and generates electron carriers including NADH and FADH2.
+
+Oxidative phosphorylation occurs across the inner mitochondrial membrane. Electrons from NADH and FADH2 move through the electron transport chain, creating a proton gradient. ATP synthase uses this proton gradient to produce ATP. Oxygen acts as the final electron acceptor and combines with electrons and protons to form water.
+
+If oxygen is absent, cells may shift to fermentation pathways. Fermentation regenerates NAD+ so glycolysis can continue, but it produces significantly less ATP than aerobic respiration. In muscle cells, lactic acid fermentation can occur during intense activity. In yeast, alcoholic fermentation produces ethanol and carbon dioxide.
+
+Understanding respiration also requires distinguishing catabolic and anabolic pathways. Cellular respiration is catabolic because it breaks down molecules to release energy. Photosynthesis is anabolic because it builds glucose molecules using light energy. These pathways are linked through carbon cycling and energy transfer in ecosystems.
