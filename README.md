@@ -52,7 +52,7 @@ If no key is set (file or env), the app runs in fallback mode for offline demo.
    - score and confidence-based route decision (`foundational/standard/advanced`)
    - confidence mismatch warning
    - targeted explanations and recommendations
-   - adaptive round-2 quiz preview
+   - adaptive next-quiz preview
 6. Discuss one success and one failure:
    - Success: weaker performance triggers foundational routing and helpful review actions
    - Failure: occasionally generic or repetitive generated items (LLM/fallback limitation)
@@ -66,7 +66,7 @@ Run synthetic baseline vs adaptive simulation:
 python evaluation/simulate_results.py
 ```
 
-This prints average round-1/round-2 scores and adaptive uplift versus static baseline for report evidence.
+This prints average current-quiz/next-quiz scores and adaptive uplift versus static baseline for report evidence.
 
 ## 4) Scope Boundaries (MVP)
 
