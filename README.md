@@ -22,6 +22,10 @@ One-command setup (recommended):
 - run a package import check
 - start the Streamlit app
 
+Note for Windows users:
+- Run `./install.sh` from Git Bash.
+- The script now supports both `.venv/bin` (macOS/Linux) and `.venv/Scripts` (Windows).
+
 Manual setup:
 
 ```bash
@@ -60,13 +64,14 @@ If no key is set (file or env), the app runs in fallback mode for offline demo.
 
 ## 3) Evaluation Artifact
 
-Run synthetic baseline vs adaptive simulation:
+Run user-progress evaluation from real quiz history:
 
 ```bash
-python evaluation/simulate_results.py
+python evaluation/user_progress_report.py
 ```
 
-This prints average current-quiz/next-quiz scores and adaptive uplift versus static baseline for report evidence.
+This reads `data/user_memory.json` and reports per-topic improvement from first attempt to latest attempt (score, accuracy, confidence), plus aggregate deltas across topics with at least 2 attempts.
+The same improvement metrics are also visible directly in the `Quiz History by Topic` page.
 
 ## 4) Scope Boundaries (MVP)
 
@@ -84,4 +89,5 @@ Intentionally left out:
 
 - `app.py`: main Streamlit app and agent workflow
 - `data/`: synthetic testing materials
-- `evaluation/simulate_results.py`: simple baseline comparison script
+- `evaluation/user_progress_report.py`: user-history-based improvement report
+- `pages/Quiz_History.py`: topic-level history + improvement trends
