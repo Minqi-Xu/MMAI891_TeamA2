@@ -10,6 +10,7 @@ MEMORY_FILE = os.path.join(BASE_DIR, "data", "user_memory.json")
 
 
 def load_memory(path: str = MEMORY_FILE) -> Dict[str, Any]:
+    """Load persisted topic history safely from disk."""
     if not os.path.exists(path):
         return {"topics": {}}
     try:
@@ -24,6 +25,7 @@ def load_memory(path: str = MEMORY_FILE) -> Dict[str, Any]:
 
 
 def top_concept_stats(concept_stats: Dict[str, Dict[str, int]], limit: int = 10) -> List[Dict[str, Any]]:
+    """Build sorted concept-level error table for remediation prioritization."""
     rows: List[Dict[str, Any]] = []
     for concept, stat in concept_stats.items():
         seen = int(stat.get("seen", 0))
@@ -42,6 +44,7 @@ def top_concept_stats(concept_stats: Dict[str, Dict[str, int]], limit: int = 10)
 
 
 def compute_improvement(history: List[Dict[str, Any]]) -> Dict[str, float]:
+    """Compute first-attempt vs latest-attempt deltas for key outcome signals."""
     if len(history) < 2:
         return {
             "score_delta": 0.0,
@@ -67,6 +70,8 @@ def compute_improvement(history: List[Dict[str, Any]]) -> Dict[str, float]:
     }
 
 
+# History page focuses on longitudinal outcomes per topic:
+# attempt history, improvement deltas, and concept-level weak spots.
 st.set_page_config(page_title="Quiz History", layout="wide")
 st.title("Quiz History by Topic")
 st.page_link("app.py", label="Back to Main App")
@@ -150,6 +155,7 @@ else:
                 ]
                 st.subheader("Progress Trend")
                 trend_data = trend_rows
+                # Left axis: accuracy percentage.
                 accuracy_line = (
                     alt.Chart(alt.Data(values=trend_data))
                     .mark_line(point=True)
@@ -163,6 +169,7 @@ else:
                         color=alt.value("#1f77b4"),
                     )
                 )
+                # Right axis: confidence 1-5 scaled to 20-100 for shared visual range.
                 confidence_line = (
                     alt.Chart(alt.Data(values=trend_data))
                     .mark_line(point=True)

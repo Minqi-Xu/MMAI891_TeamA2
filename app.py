@@ -22,6 +22,7 @@ load_dotenv()
 # Data models
 # -----------------------------
 class QuizQuestion(BaseModel):
+    """One multiple-choice question with answer key and concept tag."""
     question: str
     options: List[str]
     correct_index: int
@@ -30,18 +31,21 @@ class QuizQuestion(BaseModel):
 
 
 class StudyPack(BaseModel):
+    """Bundle returned by generation pipeline: summary, concepts, and quiz."""
     summary: str
     key_concepts: List[str]
     quiz: List[QuizQuestion]
 
 
 class ExplanationsPack(BaseModel):
+    """Post-quiz remediation content for incorrect responses."""
     explanations: List[str]
     recommendations: List[str]
 
 
 @dataclass
 class QuizResult:
+    """Normalized quiz evaluation output used by reporting and routing."""
     score: int
     total: int
     accuracy: float
@@ -60,6 +64,7 @@ MEMORY_FILE = "data/user_memory.json"
 
 
 def normalize_topic(topic: str) -> str:
+    """Create canonical topic key for stable per-topic memory lookup."""
     return re.sub(r"\s+", " ", topic.strip().lower())
 
 
@@ -237,6 +242,7 @@ def extract_text_from_file(uploaded_file) -> str:
 
 
 def clean_text(text: str) -> str:
+    """Normalize whitespace to reduce prompt noise and parsing edge cases."""
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
@@ -256,6 +262,7 @@ def chunk_text(text: str, max_chars: int = MAX_CHARS_PER_CHUNK) -> List[str]:
 
 
 def safe_json_load(raw: str) -> Dict[str, Any]:
+    """Parse JSON responses and tolerate fenced markdown wrappers."""
     raw = raw.strip()
     if raw.startswith("```"):
         raw = re.sub(r"^```(?:json)?", "", raw).strip()
@@ -264,6 +271,7 @@ def safe_json_load(raw: str) -> Dict[str, Any]:
 
 
 def sentence_chunks(text: str, n: int = 5) -> List[str]:
+    """Return deterministic sentence slices for fallback summary/question seeds."""
     sentences = re.split(r"(?<=[.!?])\s+", text)
     sentences = [s.strip() for s in sentences if len(s.strip()) > 20]
     if not sentences:
@@ -301,6 +309,7 @@ def weighted_sample_concepts(
 def fallback_study_pack(
     text: str, difficulty: str = "standard", focus_concepts: Optional[List[str]] = None
 ) -> StudyPack:
+    """Offline deterministic generation path when API key/model call is unavailable."""
     chunks = sentence_chunks(text, 8)
     summary = " ".join(chunks[:3])
 
@@ -622,6 +631,7 @@ def fallback_explanations(
 
 
 def init_state() -> None:
+    """Initialize all Streamlit session keys required by the app."""
     # Session state stores transient UI/session data; persistent learner history is
     # saved separately in data/user_memory.json.
     defaults = {
@@ -644,6 +654,7 @@ def init_state() -> None:
 
 
 def clear_current_outputs(preserve_topic: bool = True) -> None:
+    """Reset generated UI outputs while keeping optional topic text in the input box."""
     # Reset all generated content and quiz state while optionally preserving topic input.
     topic_value = st.session_state.topic if preserve_topic else ""
     st.session_state.source_text = ""
@@ -663,6 +674,8 @@ def clear_current_outputs(preserve_topic: bool = True) -> None:
 # -----------------------------
 # UI
 # -----------------------------
+# Main page layout: setup controls, topic/material intake, generation, quiz interaction,
+# and side-by-side reporting once quiz results are available.
 st.set_page_config(page_title="Adaptive Study Agent", layout="wide")
 st.title("Academic Tutor & Adaptive Quiz Agent")
 st.caption(
@@ -788,6 +801,7 @@ if st.button("Generate Summary + Initial Quiz", type="primary"):
             )
         with st.spinner("Generating study pack..."):
             try:
+                # Primary path: LLM generation with concept-aware weighted quiz concept sampling.
                 if client:
                     pack = generate_study_pack_with_llm(
                         client,
@@ -810,6 +824,7 @@ if st.button("Generate Summary + Initial Quiz", type="primary"):
                 st.session_state.next_quiz_pack = None
                 st.session_state.quiz_attempt_number = 1
             except (ValidationError, json.JSONDecodeError, Exception):
+                # Reliability fallback: keep the UX functional even if model JSON is malformed.
                 pack = fallback_study_pack(
                     st.session_state.source_text,
                     difficulty,
@@ -860,6 +875,8 @@ if pack:
             submitted = st.form_submit_button("Submit Quiz")
 
         if submitted:
+            # Evaluate and persist the quiz attempt immediately so downstream
+            # adaptation and history analytics stay in sync with user actions.
             result = evaluate_quiz(pack.quiz, answers, confidence)
             st.session_state.quiz_submitted = True
             st.session_state.result = result

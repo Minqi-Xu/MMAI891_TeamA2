@@ -1,34 +1,60 @@
-# Adaptive Study Agent POC
+# Adaptive Study Agent
 
-This project implements a **Create-mode agentic POC** based on your Agent Design Canvas:
-- Input: one or many uploaded learning files (TXT/PDF/DOCX/PPTX)
-- Agent steps: summarization -> concept extraction -> quiz generation -> answer evaluation -> adaptive difficulty routing -> explanations + study actions
-- Output: summary, quiz, performance report, and adaptive follow-up quiz preview
-- Long-input handling: automatic chunking and chunk-summary aggregation for large multi-file content sets
-- Persistent local memory per topic: previous confidence and weak concepts are saved to `data/user_memory.json`
-- Separate history page: `Quiz History by Topic` (open from top page navigation)
-- Key concepts are extracted comprehensively from source material (not capped at 5)
-- Quiz remains fixed at 5 questions, sampled from extracted concepts with higher weight on previously weak concepts
+Adaptive Study Agent is a Streamlit application that turns user-provided learning materials into a guided study workflow:
+- summarize content
+- extract key concepts
+- generate a 5-question adaptive quiz
+- evaluate responses and confidence
+- provide targeted explanations
+- track improvement by topic over time
 
-## 1) Quick Start
+The app supports `.txt`, `.pdf`, `.docx`, and `.pptx` uploads.
 
-One-command setup (recommended):
+## Core Features
+
+- Multi-file ingestion with long-document chunking
+- Grounded generation (quiz content constrained to uploaded material)
+- Comprehensive concept extraction (not limited to 5 concepts)
+- Fixed 5-question quizzes using weighted concept sampling
+  - random concept selection across extracted concepts
+  - higher weight for historically weak concepts
+- Confidence-based difficulty routing
+  - confidence 1-2: foundational
+  - confidence 3: standard
+  - confidence 4-5: advanced
+- Persistent local topic memory (`data/user_memory.json`)
+- Quiz History page with:
+  - first vs latest improvement deltas
+  - trend chart (accuracy + confidence)
+  - concept-level error rates
+
+## Project Structure
+
+- `app.py`: main application UI and generation/evaluation pipeline
+- `pages/Quiz_History.py`: historical analytics and trend visualization
+- `evaluation/user_progress_report.py`: CLI report from saved history
+- `data/`: local runtime data and optional synthetic files
+- `secrets/openai_api_key.txt`: optional local API key file (ignored by git)
+
+## Quick Start
+
+Run from project root:
 
 ```bash
 ./install.sh
 ```
 
-`./install.sh` will automatically:
+`install.sh` will:
 - create `.venv`
-- install all required packages
-- run a package import check
+- install dependencies
+- verify required imports
 - start the Streamlit app
 
-Note for Windows users:
+Windows note:
 - Run `./install.sh` from Git Bash.
-- The script now supports both `.venv/bin` (macOS/Linux) and `.venv/Scripts` (Windows).
+- The script supports both `.venv/bin` (macOS/Linux) and `.venv/Scripts` (Windows).
 
-Manual setup:
+## Manual Setup
 
 ```bash
 python3 -m venv .venv
@@ -37,59 +63,62 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Optional (LLM mode):
+## OpenAI API Configuration
+
+Choose one option:
+
+1. Local key file (recommended for this project)
 ```bash
 cp secrets/openai_api_key.txt.example secrets/openai_api_key.txt
-# Edit secrets/openai_api_key.txt and replace with your real key on one line
+# Replace placeholder with your real key
 ```
-Alternative:
+
+2. Environment variable
 ```bash
-export OPENAI_API_KEY="your_key_here"
+export OPENAI_API_KEY="sk-..."
 ```
-If no key is set (file or env), the app runs in fallback mode for offline demo.
 
-## 2) Suggested Demo Flow (10-15 mins)
+If no key is available, the app runs in fallback mode.
 
-1. Problem and value proposition (1-2 min)
-2. Upload `data/synthetic_biology_notes.txt`
-3. Generate summary + initial quiz
-4. Complete quiz with mixed accuracy and confidence
-5. Show:
-   - score and confidence-based route decision (`foundational/standard/advanced`)
-   - confidence mismatch warning
-   - targeted explanations and recommendations
-   - adaptive next-quiz preview
-6. Discuss one success and one failure:
-   - Success: weaker performance triggers foundational routing and helpful review actions
-   - Failure: occasionally generic or repetitive generated items (LLM/fallback limitation)
-7. Next-step improvements: retrieval grounding, question quality checks, and user history memory
+## Using the App
 
-## 3) Evaluation Artifact
+1. Enter a topic.
+2. Upload one or more files.
+3. Click `Generate Summary + Initial Quiz`.
+4. Answer quiz questions and set confidence for each response.
+5. Submit quiz to see:
+   - performance report
+   - targeted explanations
+   - recommended study actions
+   - next adaptive quiz preview
+6. Open `Quiz History` page to review progress by topic.
 
-Run user-progress evaluation from real quiz history:
+## Data and Privacy
+
+- Uploaded files are parsed via temporary files and removed immediately after extraction.
+- Raw uploaded files are not permanently stored by default.
+- Persistent data stored locally:
+  - `data/user_memory.json` (topic stats, quiz outcomes, concept error rates)
+- You can clear runtime output and/or saved memory from in-app controls.
+
+## Progress Evaluation (CLI)
+
+Generate a console report from saved history:
 
 ```bash
 python evaluation/user_progress_report.py
 ```
 
-This reads `data/user_memory.json` and reports per-topic improvement from first attempt to latest attempt (score, accuracy, confidence), plus aggregate deltas across topics with at least 2 attempts.
-The same improvement metrics are also visible directly in the `Quiz History by Topic` page.
+The report includes:
+- per-topic first vs latest score/accuracy/confidence
+- per-topic deltas
+- aggregate deltas for topics with at least two attempts
 
-## 4) Scope Boundaries (MVP)
+## Troubleshooting
 
-Included:
-- Persistent per-topic local memory (saved to local file)
-- Explicit confidence-based decision logic for adaptive routing
-- Explainable output a learner can act on
-
-Intentionally left out:
-- Authentication / cloud-synced learner profiles
-- Institutional LMS integration
-- Human instructor override workflows
-
-## 5) Architecture Notes
-
-- `app.py`: main Streamlit app and agent workflow
-- `data/`: synthetic testing materials
-- `evaluation/user_progress_report.py`: user-history-based improvement report
-- `pages/Quiz_History.py`: topic-level history + improvement trends
+- `No such file or directory: .venv/bin/python` on Windows:
+  - use Git Bash and run `./install.sh` (already handles Windows venv paths).
+- `No API key detected`:
+  - add key to `secrets/openai_api_key.txt` or set `OPENAI_API_KEY`.
+- Unsupported upload type:
+  - use one of: TXT, PDF, DOCX, PPTX.
